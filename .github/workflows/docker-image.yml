@@ -1,0 +1,57 @@
+name: Build, Push Docker Images, and Redeploy on Render
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Docker Buildx
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    # Step 3: Cache Docker layers to speed up the build
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    # Step 4: Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # Step 5: Build Docker images using docker-compose
+    - name: Build Docker images
+      run: |
+        docker-compose -f docker-compose.yml build
+
+    # Step 6: Push Docker images to Docker Hub
+    - name: Push Docker images
+      run: |
+        docker-compose -f docker-compose.yml push
+
+    # Step 7: Trigger Render Deployment (replace with your actual Render Service ID)
+    - name: Trigger Render Deployment (Backend)
+      run: |
+        curl -X POST https://api.render.com/deploy/SERVICE_ID_BACKEND \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+
+    - name: Trigger Render Deployment (Frontend)
+      run: |
+        curl -X POST https://api.render.com/deploy/SERVICE_ID_FRONTEND \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"

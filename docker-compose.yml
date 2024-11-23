@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  frontend:
+    container_name: rpf-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    networks:
+      - rpf-network
+
+  backend:
+    container_name: rpf-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - backend-uploads:/app/uploads
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+    networks:
+      - rpf-network
+
+networks:
+  rpf-network:
+    name: rpf-network
+    driver: bridge
+
+volumes:
+  backend-uploads:
+    name: rpf-uploads
