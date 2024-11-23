@@ -1,19 +1,4 @@
-# DOCX to PDF Converter
 
-This project is a **DOCX to PDF Converter** that allows users to upload `.docx` files, convert them to PDF, and optionally password-protect the resulting PDF. The application uses the **MERN stack** (MongoDB, Express, React, Node.js) with Docker for deployment and Render for hosting.
-
-## Features
-
-- **File Upload**: Upload `.docx` files.
-- **PDF Conversion**: Convert the uploaded DOCX file to a PDF.
-- **Password Protection**: Option to set a password for the PDF.
-- **Download PDF**: After conversion, download the PDF.
-- **Dockerized**: Backend and frontend are containerized using Docker.
-- **Deployment**: The project is deployed on Render.
-Here is a README.md file that you can use for your MERN project (DOCX to PDF Converter), based on your recent updates over the past few days.
-
-markdown
-Copy code
 # DOCX to PDF Converter
 
 This project is a **DOCX to PDF Converter** that allows users to upload `.docx` files, convert them to PDF, and optionally password-protect the resulting PDF. The application uses the **MERN stack** (MongoDB, Express, React, Node.js) with Docker for deployment and Render for hosting.
