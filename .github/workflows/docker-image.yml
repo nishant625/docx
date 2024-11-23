@@ -3,46 +3,53 @@ name: Build, Push Docker Images, and Redeploy on Render
 on:
   push:
     branches:
-      - main  # Trigger this workflow only when pushing to the main branch
+      - main
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up Docker
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-        with:
-          version: latest
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      # Log in to Docker Hub
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+      # Build and push backend image
+      - name: Build and push backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend  # Make sure this path points to your backend Dockerfile
+          push: true
+          tags: |
+            nishant625/rpf_backend:latest
+            nishant625/rpf_backend:${{ github.sha }}
 
-      # Build Docker images and push to Docker Hub
-      - name: Build and Push Docker images
-        run: |
-          docker-compose -f docker-compose.yml build
-          docker-compose -f docker-compose.yml push
+      # Build and push frontend image
+      - name: Build and push frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend  # Make sure this path points to your frontend Dockerfile
+          push: true
+          tags: |
+            nishant625/rpf_frontend:latest
+            nishant625/rpf_frontend:${{ github.sha }}
 
-      # Deploy to Render (assumes Render is connected to your GitHub repository)
-      - name: Trigger Render redeploy
+      # Deploy to Render
+      - name: Deploy to Render
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -d '{"serviceId": "your-render-service-id"}' \
-            https://api.render.com/v1/services/deploy
+            -H "Content-Type: application/json" \
+            -d '{"serviceId": "${{ secrets.RENDER_SERVICE_ID }}"}' \
+            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
